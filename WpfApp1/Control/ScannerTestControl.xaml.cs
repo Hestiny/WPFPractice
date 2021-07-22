@@ -25,6 +25,10 @@ namespace WpfApp1.Contorl
     /// </summary>
     public partial class ScannerTestControl : UserControl
     {
+        /// <summary>
+        /// 是否保存到本地文件夹的标志;点击事件开启,传输事件后关闭
+        /// </summary>
+        private bool IsScanner = false;
 
         private TwainSession twain;
         public DataSource DS { get; set; }
@@ -39,6 +43,27 @@ namespace WpfApp1.Contorl
         private void InitScanner()
         {
             SetupTwain();
+        }
+
+        private void OpenSaveScanner()
+        {
+            IsScanner = true;
+        }
+
+        private void CloseSaveScanner()
+        {
+            IsScanner = false;
+        }
+
+        /// <summary>
+        /// 检查是否连接上扫描仪
+        /// </summary>
+        /// <returns>有连接的扫描仪为true,否则为false</returns>
+        private bool ScannerChecked()
+        {
+            if (ScannerList.SelectedItem == null)
+                return false;
+            return true;
         }
 
         void _session_TransferReady(object sender, TransferReadyEventArgs e)
@@ -77,6 +102,17 @@ namespace WpfApp1.Contorl
 
         void _session_DataTransferred(object sender, DataTransferredEventArgs e)
         {
+            //System.IO.File.WriteAllBytes(FilePath.Content.ToString(), e.GetNativeImageStream());
+            if (IsScanner)
+            {
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(e.GetNativeImageStream().ConvertToWpfBitmap(300, 0)));
+                FileStream fileStream = new FileStream(FilePath.Content.ToString(), FileMode.Create, FileAccess.ReadWrite);
+                encoder.Save(fileStream);
+                fileStream.Close();
+                CloseSaveScanner();
+            }
+           
             ImageSource img = GenerateThumbnail(e);
             if (img != null)
             {
@@ -113,16 +149,6 @@ namespace WpfApp1.Contorl
                     // TODO: build current image from multiple data-xferred event
                     break;
             }
-
-            //if (img != null)
-            //{
-            //    // from http://stackoverflow.com/questions/18189501/create-thumbnail-image-directly-from-header-less-image-byte-array
-            //    var scale = MaxThumbnailSize / img.PixelWidth;
-            //    var transform = new ScaleTransform(scale, scale);
-            //    var thumbnail = new TransformedBitmap(img, transform);
-            //    img = new WriteableBitmap(new TransformedBitmap(img, transform));
-            //    img.Freeze();
-            //}
             return img;
         }
 
@@ -141,12 +167,13 @@ namespace WpfApp1.Contorl
 
             twain.TransferError += (s, e) =>
             {
+                CloseSaveScanner();
                 MessageBox.Show("图片传输错误:" + e.Exception.Message);
             };
             twain.DataTransferred += _session_DataTransferred;
             twain.SourceDisabled += (s, e) =>
             {
-                MessageBox.Show("源数据删除");
+                //MessageBox.Show("源数据已清除");
             };
             twain.TransferReady += (s, e) =>
             {
@@ -156,10 +183,27 @@ namespace WpfApp1.Contorl
             twain.SynchronizationContext = System.Threading.SynchronizationContext.Current;
         }
 
+        #region 界面事件
+
         private void ShowUI_Click(object sender, RoutedEventArgs e)
         {
+            if (!ScannerChecked())
+            {
+                MessageBox.Show("没有连接扫描仪");
+                return;
+            }
+            if (FilePath.Content.ToString() == "ClickMe")
+            {
+                MessageBox.Show("选择保存的文件路径");
+                return;
+            }
+            //直接打开文件选择对话框
+            //if (FilePath.Content.ToString() == "ClickMe")
+            //{
+            //    FilePath_Click(FilePath, null);
+            //}
+            OpenSaveScanner();
             var windowsPtr = new WindowInteropHelper(Window.GetWindow(this)).Handle;
-        
             ReturnCode a = twain.CurrentSource.Enable(SourceEnableMode.ShowUI, false, windowsPtr);
         }
 
@@ -177,9 +221,64 @@ namespace WpfApp1.Contorl
 
         private void FilePath_Click(object sender, RoutedEventArgs e)
         {
-           
-            System.Windows.Forms.OpenFileDialog dialog =new System.Windows.Forms.OpenFileDialog();
-            dialog.ShowDialog();
+            //文件夹对话弹窗
+            //System.Windows.Forms.FolderBrowserDialog dialog =new System.Windows.Forms.FolderBrowserDialog();
+            //dialog.ShowDialog();
+            //if (dialog.SelectedPath == null)
+            //{
+            //    (sender as Button).Content = "ClickMe";
+            //}
+            //else
+            //{
+            //    (sender as Button).Content = dialog.SelectedPath.Trim();
+            //}
+            System.Windows.Forms.SaveFileDialog saveDg = new System.Windows.Forms.SaveFileDialog();
+            saveDg.Filter = "pdf (*.pdf)|*.pdf |png (*.png)|*.png";
+            saveDg.DefaultExt = "png"; 
+            saveDg.FileName = DateTime.Now.ToString("yyyy-MM-dd_hh-mm-ss") + "";
+            saveDg.AddExtension = true;
+            saveDg.RestoreDirectory = true;
+            if (saveDg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                if (saveDg.FileName == null)
+                {
+                    (sender as Button).Content = "ClickMe";
+                }
+                else
+                {
+                    (sender as Button).Content = saveDg.FileName.Trim();
+                }
+            }
         }
+
+        private void Preview_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ScannerChecked())
+            {
+                MessageBox.Show("没有连接扫描仪");
+                return;
+            }
+            var windowsPtr = new WindowInteropHelper(Window.GetWindow(this)).Handle;
+            twain.CurrentSource.Enable(SourceEnableMode.NoUI, false, windowsPtr);
+        }
+
+        private void Scanner_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ScannerChecked())
+            {
+                MessageBox.Show("没有连接扫描仪");
+                return;
+            }
+            if (FilePath.Content.ToString() == "ClickMe")
+            {
+                MessageBox.Show("选择保存的文件路径");
+                return;
+            }
+            OpenSaveScanner();
+            var windowsPtr = new WindowInteropHelper(Window.GetWindow(this)).Handle;
+            twain.CurrentSource.Enable(SourceEnableMode.NoUI, false, windowsPtr);
+        }
+
+        #endregion
     }
 }

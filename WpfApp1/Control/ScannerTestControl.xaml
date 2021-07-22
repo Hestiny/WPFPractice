@@ -18,7 +18,11 @@
         </Grid.ColumnDefinitions>
         <StackPanel Background="CornflowerBlue"  >
             <ListView x:Name="ScannerList" ItemTemplate="{StaticResource ScannerItemTemplate}" Background="Transparent"  SelectionChanged="ScannerList_SelectionChanged"/>
-            <Button x:Name="ShowUI" Content="ShowUI" Width="80" Margin="0 20 0 20" Click="ShowUI_Click"/>
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="Preview" Content="预览" Width="80" Margin="50 20 20 0" Click="Preview_Click"/>
+                <Button x:Name="Scanner" Content="扫描" Width="80" Margin="0 20 0 0" Click="Scanner_Click"/>
+            </StackPanel>
+               <Button x:Name="ShowUI" Content="更多设置" Width="80" Margin="0 20 0 20" Click="ShowUI_Click"/>
             <Button x:Name="FilePath" Content="ClickMe" Height="40" Background="Transparent" BorderBrush="White" BorderThickness="0 1 0 1" Click="FilePath_Click"/>
         </StackPanel>
         <Image Grid.Column="1" x:Name="ScannerImage">
