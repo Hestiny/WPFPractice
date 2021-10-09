@@ -91,7 +91,7 @@ namespace WpfApp1.Control
             return result;
         }
 
-        public bool WordToPDF(string sourcePath, string targetPath)
+        private bool WordToPDF(string sourcePath, string targetPath)
         {
             bool result = false;
             Microsoft.Office.Interop.Word.Application application = new Microsoft.Office.Interop.Word.Application();

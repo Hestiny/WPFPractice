@@ -9,7 +9,8 @@
     <Grid Background="White">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
             <TextBlock x:Name="FilePath" Height="20"  Text="??????"/>
-            <Button Click="Button_Click" Margin="20 0 0 0" Height="20" Width="80" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <Button Click="Button_Click" Margin="20 0 0 0" Content="点击" Height="20" Width="80" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         </StackPanel>
+        <local:LoadingWait x:Name="Roll" Visibility="Collapsed"/>
     </Grid>
 </UserControl>
