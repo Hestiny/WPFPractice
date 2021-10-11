@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -115,19 +115,102 @@ namespace WpfApp1.Control
             return result;
         }
 
+        #region 多线程
+
+        public class VisualHost : FrameworkElement
+        {
+            Visual child;
+
+            public VisualHost(Visual child)
+            {
+                if (child == null)
+                    throw new ArgumentException("child");
+
+                this.child = child;
+                AddVisualChild(child);
+            }
+
+            protected override Visual GetVisualChild(int index)
+            {
+                return (index == 0) ? child : null;
+            }
+
+            protected override int VisualChildrenCount
+            {
+                get { return 1; }
+            }
+        }
+
+        private void mainLoad()
+        {
+            HostVisual hostVisual = new HostVisual();
+
+            UIElement content = new VisualHost(hostVisual);
+            this.Content = content;
+
+            Thread thread = new Thread(new ThreadStart(() =>
+            {
+                VisualTarget visualTarget = new VisualTarget(hostVisual);
+                var control = new LoadingWait();
+                control.Arrange(new Rect(new System.Windows.Point(), content.RenderSize));
+                visualTarget.RootVisual = control;
+
+                System.Windows.Threading.Dispatcher.Run();
+
+            }));
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.IsBackground = true;
+            thread.Start();
+        }
+
+        #endregion
+
+        private void CallRollThead(Visibility visibility)
+        {
+            App.Current.Dispatcher.Invoke((Action)(() =>
+            {
+                RollState(visibility);
+            }));
+        }
+
+        private void RollState(Visibility visibility)
+        {
+            Roll.Visibility = visibility;
+            Roll.HandleVisibleChanged(Roll.Visibility);
+        }
+
+
+        private void RollState()
+        {
+            Roll.HandleVisibleChanged(Roll.Visibility);
+        }
+
+
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new OpenFileDialog();
-            dialog.Filter = ".docx|*.docx|.pptx|*.pptx|.doc|*.doc|.ppt|*.ppt|.xlsx|*.xlsx";
+            dialog.Filter = "*.*|*.*|.docx|*.docx|.pptx|*.pptx|.doc|*.doc|.ppt|*.ppt|.xlsx|*.xlsx";
             if (dialog.ShowDialog() == false) return;
             string _fileName = dialog.FileName;
 
             FilePath.Text = _fileName;
             //SpireToPDF(_fileName);
             //AsposeToPDF(_fileName);
+            //Roll.Visibility = Visibility.Visible;
+            //Thread t1 = new Thread(RollState);
+            //t1.TrySetApartmentState(ApartmentState.STA);
+            //t1.IsBackground = true;
+            //t1.Start();
+            //CallRollThead(Visibility.Visible);
+
             //WordToPDF(_fileName, "C:\\Users\\kdanmobile\\Desktop\\pdf\\test\\Newpdf.pdf");
-            PPTTOPDF(_fileName, "C:\\Users\\kdanmobile\\Desktop\\pdf\\test\\Newpdf.pdf");
-            //ExcelToPDF(_fileName, "C:\\Users\\kdanmobile\\Desktop\\pdf\\test\\Newpdf.pdf");
+            //PPTTOPDF(_fileName, "C:\\Users\\kdanmobile\\Desktop\\pdf\\test\\Newpdf.pdf");
+            ExcelToPDF(_fileName, "C:\\Users\\kdanmobile\\Desktop\\pdf\\test\\Newpdf.pdf");
+
+            //t1.Abort();
+            //Roll.Visibility = Visibility.Collapsed;
+            //RollState();
         }
     }
 }
