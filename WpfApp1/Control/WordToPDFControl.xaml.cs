@@ -206,8 +206,8 @@ namespace WpfApp1.Control
 
             //WordToPDF(_fileName, "C:\\Users\\kdanmobile\\Desktop\\pdf\\test\\Newpdf.pdf");
             //PPTTOPDF(_fileName, "C:\\Users\\kdanmobile\\Desktop\\pdf\\test\\Newpdf.pdf");
-            ExcelToPDF(_fileName, "C:\\Users\\kdanmobile\\Desktop\\pdf\\test\\Newpdf.pdf");
-
+            ExcelToPDF(_fileName, "C:\\Users\\kdan\\Desktop\\新建文件夹\test\\Newpdf.pdf");
+            //C:\Users\kdan\Desktop\新建文件夹\test
             //t1.Abort();
             //Roll.Visibility = Visibility.Collapsed;
             //RollState();

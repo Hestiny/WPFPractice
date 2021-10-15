@@ -39,6 +39,7 @@ namespace WpfApp1
 
             var menuSchedule = new List<SubItem>();
             menuSchedule.Add(new SubItem("转换pdf",new WordToPDFControl()));
+            menuSchedule.Add(new SubItem("更新", new ));
             var item2 = new ItemMenu("测试", menuSchedule, PackIconKind.Bat);
             Menu.Children.Add(new MenuItemControl(item1, this));
             Menu.Children.Add(new MenuItemControl(item2, this));
